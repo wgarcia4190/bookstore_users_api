@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/wgarcia4190/bookstore_users_api/domain/users"
-	"github.com/wgarcia4190/bookstore_users_api/services"
-	"github.com/wgarcia4190/bookstore_users_api/utils/errors"
+	"github.com/wgarcia4190/bookstore_users_api/internal/domain/users"
+	"github.com/wgarcia4190/bookstore_users_api/internal/services"
+	"github.com/wgarcia4190/bookstore_users_api/internal/utils/errors"
 )
 
 // Create creates a new user

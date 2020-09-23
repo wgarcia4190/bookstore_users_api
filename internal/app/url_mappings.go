@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/wgarcia4190/bookstore_users_api/controllers/health"
-	"github.com/wgarcia4190/bookstore_users_api/controllers/users"
+	"github.com/wgarcia4190/bookstore_users_api/internal/controllers/health"
+	"github.com/wgarcia4190/bookstore_users_api/internal/controllers/users"
 )
 
 // mapUrls maps all controller functions with their respective urls and http methods.

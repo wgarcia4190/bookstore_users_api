@@ -3,8 +3,8 @@ package services
 import (
 	"time"
 
-	"github.com/wgarcia4190/bookstore_users_api/domain/users"
-	"github.com/wgarcia4190/bookstore_users_api/utils/errors"
+	"github.com/wgarcia4190/bookstore_users_api/internal/domain/users"
+	"github.com/wgarcia4190/bookstore_users_api/internal/utils/errors"
 )
 
 // CreateUser persist the users.User entity in the DB
