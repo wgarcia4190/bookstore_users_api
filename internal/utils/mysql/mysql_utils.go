@@ -16,7 +16,7 @@ func ParseError(err error) *errors.RestErr {
 	if !ok {
 		switch true {
 		case strings.Contains(err.Error(), errorNoRows):
-			return errors.NewNotFoundError("no record matching given id")
+			return errors.NewNotFoundError("no record matching given information")
 		default:
 			return errors.NewInternalServerError("error parsing database response: %v", err)
 		}

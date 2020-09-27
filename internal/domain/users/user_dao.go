@@ -59,7 +59,7 @@ const (
 		WHERE
 			id = ?;
 	`
-	queryFindUserByStatus = `
+	queryFindByStatus = `
 		SELECT
 			id,
 			first_name,
@@ -72,6 +72,20 @@ const (
 			users
 		WHERE
 			status = ?;
+	`
+	queryFindByEmailAndPassword = `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			email,
+			status,
+			date_created,
+		    date_updated
+		FROM
+			users
+		WHERE
+			email = ? AND password = ? AND status = ?;
 	`
 )
 
@@ -197,7 +211,7 @@ func Delete(userId int64) *errors.RestErr {
 // FindByStatus returns a slice of User from the database, which status field
 // is equals to the status parameter.
 func FindByStatus(status string) ([]User, *errors.RestErr) {
-	stmt, err := createStmt(queryFindUserByStatus) //nolint:sqlclosecheck
+	stmt, err := createStmt(queryFindByStatus) //nolint:sqlclosecheck
 
 	if err != nil {
 		logger.Error("error when trying to prepare find user by status statement", err)
@@ -205,7 +219,7 @@ func FindByStatus(status string) ([]User, *errors.RestErr) {
 	}
 	defer closeStmt(stmt)
 
-	rows, sqlErr := stmt.Query(status) //nolint:rowserrcheck
+	rows, sqlErr := stmt.Query(status) //nolint:sqlclosecheck,rowserrcheck
 	if sqlErr != nil {
 		logger.Error("error when trying to find user by status", err)
 		return nil, mysql.ParseError(sqlErr)
@@ -232,7 +246,30 @@ func FindByStatus(status string) ([]User, *errors.RestErr) {
 	}
 
 	return results, nil
+}
 
+// Get retrieve an User from the database
+func FindByEmailAndPassword(request LoginRequest) (*User, *errors.RestErr) {
+	stmt, err := createStmt(queryFindByEmailAndPassword) //nolint:sqlclosecheck
+
+	if err != nil {
+		logger.Error("error when trying to prepare get user by email and password statement", err)
+		return nil, err
+	}
+	defer closeStmt(stmt)
+
+	user := &User{}
+
+	result := stmt.QueryRow(request.Email, request.GetEncryptedPassword(), StatusActive)
+	if err := result.Scan(
+		&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Status,
+		&user.DateCreated, &user.DateUpdated); err != nil {
+
+		logger.Error("error when trying to get user by email and password", err)
+		return nil, mysql.ParseError(err)
+	}
+
+	return user, nil
 }
 
 // closeStmt closes an statement. We are using this function to fix the lint issue

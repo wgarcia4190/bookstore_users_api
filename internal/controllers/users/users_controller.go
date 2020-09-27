@@ -94,13 +94,34 @@ func Delete(c *gin.Context) {
 func Search(c *gin.Context) {
 	status := c.Query("status")
 
-	userSlice, err := services.Search(status)
+	userSlice, err := services.UserService.Search(status)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, userSlice.Marshall(isPrivate(c)))
+}
+
+// Login returns an user which email and password match
+// POST /users/login
+func Login(c *gin.Context) {
+	var request users.LoginRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		restErr := errors.NewBadRequestError("invalid json body")
+
+		c.JSON(restErr.Status, restErr)
+
+		return
+	}
+
+	loggedUser, err := services.UserService.Login(request)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, loggedUser.Marshall(isPrivate(c)))
 }
 
 // getUserId returns the user_id parameter from the gin.Context

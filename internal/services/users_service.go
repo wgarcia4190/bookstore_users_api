@@ -21,6 +21,7 @@ type usersServiceInterface interface {
 	Update(*users.CreateUser, int64, bool) (*users.User, *errors.RestErr)
 	Delete(int64) *errors.RestErr
 	Search(string) (users.Users, *errors.RestErr)
+	Login(users.LoginRequest) (*users.User, *errors.RestErr)
 }
 
 // Get returns an users.User which Id is equals to userId
@@ -87,4 +88,12 @@ func (s *usersService) Delete(userId int64) *errors.RestErr {
 // Search returns a slice of users.User entities from the DB
 func (s *usersService) Search(status string) (users.Users, *errors.RestErr) {
 	return users.FindByStatus(status)
+}
+
+func (s *usersService) Login(request users.LoginRequest) (*users.User, *errors.RestErr) {
+	result, err := users.FindByEmailAndPassword(request)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
