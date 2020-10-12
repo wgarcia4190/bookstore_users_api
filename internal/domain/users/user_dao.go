@@ -4,14 +4,11 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/wgarcia4190/bookstore_users_api/internal/logger"
-
-	"github.com/wgarcia4190/bookstore_users_api/internal/utils/mysql"
-
 	"github.com/wgarcia4190/bookstore_users_api/internal/datasources/mysql/users_db"
-
+	"github.com/wgarcia4190/bookstore_users_api/internal/logger"
 	"github.com/wgarcia4190/bookstore_users_api/internal/utils/date"
-	"github.com/wgarcia4190/bookstore_users_api/internal/utils/errors"
+	"github.com/wgarcia4190/bookstore_users_api/internal/utils/mysql"
+	"github.com/wgarcia4190/bookstore_utils_go/rest_errors"
 )
 
 const (
@@ -90,7 +87,7 @@ const (
 )
 
 // Get retrieve an User from the database
-func Get(userId int64) (*User, *errors.RestErr) {
+func Get(userId int64) (*User, *rest_errors.RestErr) {
 	stmt, err := createStmt(queryGetUser) //nolint:sqlclosecheck
 
 	if err != nil {
@@ -114,7 +111,7 @@ func Get(userId int64) (*User, *errors.RestErr) {
 }
 
 // Save an User into the database
-func Save(user *CreateUser) (*User, *errors.RestErr) {
+func Save(user *CreateUser) (*User, *rest_errors.RestErr) {
 	now := date.GetNowDB()
 	stmt, err := createStmt(queryInsertUser) //nolint:sqlclosecheck
 
@@ -135,7 +132,7 @@ func Save(user *CreateUser) (*User, *errors.RestErr) {
 		userId, err := insertResult.LastInsertId()
 		if err != nil {
 			logger.Error("error when trying to get last insert id", err)
-			return nil, errors.NewInternalServerError("database error")
+			return nil, rest_errors.NewInternalServerError("database error", err)
 		}
 
 		newUser := &User{
@@ -151,11 +148,11 @@ func Save(user *CreateUser) (*User, *errors.RestErr) {
 		return newUser, nil
 	}
 
-	return nil, errors.NewInternalServerError("error when trying to save user")
+	return nil, rest_errors.NewInternalServerError("error when trying to save user", err)
 }
 
 // Update an User into the database
-func Update(user *User, newUser *CreateUser, isPartial bool) *errors.RestErr {
+func Update(user *User, newUser *CreateUser, isPartial bool) *rest_errors.RestErr {
 	stmt, err := createStmt(queryUpdateUser) //nolint:sqlclosecheck
 
 	if err != nil {
@@ -191,7 +188,7 @@ func Update(user *User, newUser *CreateUser, isPartial bool) *errors.RestErr {
 }
 
 // Delete an User into the database
-func Delete(userId int64) *errors.RestErr {
+func Delete(userId int64) *rest_errors.RestErr {
 	stmt, err := createStmt(queryDeleteUser) //nolint:sqlclosecheck
 
 	if err != nil {
@@ -210,7 +207,7 @@ func Delete(userId int64) *errors.RestErr {
 
 // FindByStatus returns a slice of User from the database, which status field
 // is equals to the status parameter.
-func FindByStatus(status string) ([]User, *errors.RestErr) {
+func FindByStatus(status string) ([]User, *rest_errors.RestErr) {
 	stmt, err := createStmt(queryFindByStatus) //nolint:sqlclosecheck
 
 	if err != nil {
@@ -242,14 +239,14 @@ func FindByStatus(status string) ([]User, *errors.RestErr) {
 	}
 
 	if len(results) == 0 {
-		return nil, errors.NewNotFoundError("no users matching status %s", status)
+		return nil, rest_errors.NewNotFoundError("no users matching status %s", status)
 	}
 
 	return results, nil
 }
 
 // Get retrieve an User from the database
-func FindByEmailAndPassword(request LoginRequest) (*User, *errors.RestErr) {
+func FindByEmailAndPassword(request LoginRequest) (*User, *rest_errors.RestErr) {
 	stmt, err := createStmt(queryFindByEmailAndPassword) //nolint:sqlclosecheck
 
 	if err != nil {
@@ -286,10 +283,10 @@ func closeRows(rows *sql.Rows) {
 
 // createStmt creates an statement. We are using this function to reduce the boilerplate
 // code.
-func createStmt(query string) (*sql.Stmt, *errors.RestErr) {
+func createStmt(query string) (*sql.Stmt, *rest_errors.RestErr) {
 	stmt, err := users_db.Client.Prepare(query)
 	if err != nil {
-		return nil, errors.NewInternalServerError("database error")
+		return nil, rest_errors.NewInternalServerError("database error", err)
 	}
 
 	return stmt, nil

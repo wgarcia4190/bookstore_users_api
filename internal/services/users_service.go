@@ -3,10 +3,9 @@ package services
 import (
 	"strings"
 
-	"github.com/wgarcia4190/bookstore_users_api/internal/utils/crypto"
-
 	"github.com/wgarcia4190/bookstore_users_api/internal/domain/users"
-	"github.com/wgarcia4190/bookstore_users_api/internal/utils/errors"
+	"github.com/wgarcia4190/bookstore_users_api/internal/utils/crypto"
+	"github.com/wgarcia4190/bookstore_utils_go/rest_errors"
 )
 
 var (
@@ -16,16 +15,16 @@ var (
 type usersService struct{}
 
 type usersServiceInterface interface {
-	Get(int64) (*users.User, *errors.RestErr)
-	Create(*users.CreateUser) (*users.User, *errors.RestErr)
-	Update(*users.CreateUser, int64, bool) (*users.User, *errors.RestErr)
-	Delete(int64) *errors.RestErr
-	Search(string) (users.Users, *errors.RestErr)
-	Login(users.LoginRequest) (*users.User, *errors.RestErr)
+	Get(int64) (*users.User, *rest_errors.RestErr)
+	Create(*users.CreateUser) (*users.User, *rest_errors.RestErr)
+	Update(*users.CreateUser, int64, bool) (*users.User, *rest_errors.RestErr)
+	Delete(int64) *rest_errors.RestErr
+	Search(string) (users.Users, *rest_errors.RestErr)
+	Login(users.LoginRequest) (*users.User, *rest_errors.RestErr)
 }
 
 // Get returns an users.User which Id is equals to userId
-func (s *usersService) Get(userId int64) (*users.User, *errors.RestErr) {
+func (s *usersService) Get(userId int64) (*users.User, *rest_errors.RestErr) {
 	// Get function from user_dao
 	result, err := users.Get(userId)
 	if err != nil {
@@ -35,7 +34,7 @@ func (s *usersService) Get(userId int64) (*users.User, *errors.RestErr) {
 }
 
 // Create persist the users.User entity in the DB
-func (s *usersService) Create(user *users.CreateUser) (*users.User, *errors.RestErr) {
+func (s *usersService) Create(user *users.CreateUser) (*users.User, *rest_errors.RestErr) {
 	if err := user.Validate(); err != nil {
 		return nil, err
 	}
@@ -43,7 +42,7 @@ func (s *usersService) Create(user *users.CreateUser) (*users.User, *errors.Rest
 	hash, cryptoErr := crypto.GetMd5(user.Password)
 
 	if cryptoErr != nil {
-		return nil, errors.NewBadRequestError("password cannot be encrypted")
+		return nil, rest_errors.NewBadRequestError("password cannot be encrypted")
 	}
 
 	user.Password = hash
@@ -58,7 +57,7 @@ func (s *usersService) Create(user *users.CreateUser) (*users.User, *errors.Rest
 }
 
 // Update updates an users.User entity in the DB
-func (s *usersService) Update(user *users.CreateUser, userId int64, isPartial bool) (*users.User, *errors.RestErr) {
+func (s *usersService) Update(user *users.CreateUser, userId int64, isPartial bool) (*users.User, *rest_errors.RestErr) {
 	if !isPartial || (isPartial && strings.TrimSpace(user.Email) != "") {
 		if err := user.Validate(); err != nil {
 			return nil, err
@@ -81,16 +80,16 @@ func (s *usersService) Update(user *users.CreateUser, userId int64, isPartial bo
 }
 
 // Delete deletes an users.User entity in the DB
-func (s *usersService) Delete(userId int64) *errors.RestErr {
+func (s *usersService) Delete(userId int64) *rest_errors.RestErr {
 	return users.Delete(userId)
 }
 
 // Search returns a slice of users.User entities from the DB
-func (s *usersService) Search(status string) (users.Users, *errors.RestErr) {
+func (s *usersService) Search(status string) (users.Users, *rest_errors.RestErr) {
 	return users.FindByStatus(status)
 }
 
-func (s *usersService) Login(request users.LoginRequest) (*users.User, *errors.RestErr) {
+func (s *usersService) Login(request users.LoginRequest) (*users.User, *rest_errors.RestErr) {
 	result, err := users.FindByEmailAndPassword(request)
 	if err != nil {
 		return nil, err
